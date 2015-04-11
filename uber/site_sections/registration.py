@@ -464,7 +464,7 @@ class Root:
         def pay(self, session, id, message=''):
             attendee = session.attendee(id)
             if attendee.paid == HAS_PAID:
-                raise HTTPRedirect('register?message={}', 'You are already paid and should proceed to the preregistration desk to pick up your badge')
+                raise HTTPRedirect('../preregistration/form?message={}', 'You are already paid and should proceed to the preregistration desk to pick up your badge')
             else:
                 return {
                     'message': message,
@@ -484,7 +484,7 @@ class Root:
                 attendee.paid = HAS_PAID
                 attendee.amount_paid = attendee.total_cost
                 session.merge(attendee)
-                raise HTTPRedirect('register?message={}', 'Your payment has been accepted, please proceed to the Preregistration desk to pick up your badge')
+                raise HTTPRedirect('../preregistration/form?message={}', 'Your payment has been accepted, please proceed to the Preregistration desk to pick up your badge')
 
     def comments(self, session, order='last_name'):
         return {

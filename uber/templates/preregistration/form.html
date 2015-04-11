@@ -124,6 +124,17 @@ $(document).ready(function(){
 <span class="text-center"><h2>Dealer Application</h2></span>
 {% endif %}
 {% include "preregistration/badge_choice.html" %}
+{% if AT_THE_CON %}
+<div class="form-group">
+    <label for="payment_method" class="col-sm-2 control-label">Payment Method</label>
+    <div class="col-sm-6">
+        <select name="payment_method" onChange="maybeBold()">
+            <option value="">Select a payment option</option>
+            {% options DOOR_PAYMENT_METHOD_OPTS attendee.payment_method %}
+        </select>
+    </div>
+</div>
+{% endif %}
 {% if not attendee.is_dealer %}
 <div class="form-group">
     <p class="help-block col-sm-8 col-sm-offset-2"><strong>Dealers:</strong>

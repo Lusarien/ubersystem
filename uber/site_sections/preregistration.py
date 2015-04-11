@@ -163,13 +163,30 @@ class Root:
                     if group.badges:
                         Tracking.track(track_type, group)
 
-                if session.query(Attendee).filter_by(first_name=attendee.first_name, last_name=attendee.last_name, email=attendee.email).count():
-                    raise HTTPRedirect('duplicate?id={}', group.id if attendee.paid == PAID_BY_GROUP else attendee.id)
+                if AT_THE_CON:
+                    session.add(attendee)
+                    attendee.badge_num = 0
+                    if not attendee.zip_code:
+                        attendee.zip_code = '00000'
+                    session.commit()
+                    message = 'Thanks!  Please queue in the {} line and have your photo ID and {} ready.'
+                    if attendee.payment_method == STRIPE:
+                        raise HTTPRedirect('../registration/pay?id={}', attendee.id)
+                    elif attendee.payment_method == GROUP:
+                        message = 'Please proceed to the preregistration line to pick up your badge.'
+                        attendee.paid = PAID_BY_GROUP
+                    elif attendee.payment_method == CASH:
+                        message = message.format('cash', '${}'.format(attendee.total_cost))
+                    elif attendee.payment_method == MANUAL:
+                        message = message.format('credit card', 'credit card')
+                else:
+                    if session.query(Attendee).filter_by(first_name=attendee.first_name, last_name=attendee.last_name, email=attendee.email).count():
+                        raise HTTPRedirect('duplicate?id={}', group.id if attendee.paid == PAID_BY_GROUP else attendee.id)
 
-                if attendee.full_name in BANNED_ATTENDEES:
-                    raise HTTPRedirect('banned?id={}', group.id if attendee.paid == PAID_BY_GROUP else attendee.id)
+                    if attendee.full_name in BANNED_ATTENDEES:
+                        raise HTTPRedirect('banned?id={}', group.id if attendee.paid == PAID_BY_GROUP else attendee.id)
 
-                raise HTTPRedirect('index')
+                    raise HTTPRedirect('index')
         else:
             if edit_id is None:
                 attendee.can_spam = True    # only defaults to true for these forms
