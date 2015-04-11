@@ -617,7 +617,10 @@ class Attendee(MagModel, TakesPaymentMixin):
 
     @property
     def total_cost(self):
-        return self.badge_cost + self.amount_extra
+        if self.amount_extra in FREE_KICKIN_LEVELS:
+            return self.badge_cost
+        else:
+            return self.badge_cost + self.amount_extra
 
     @property
     def amount_unpaid(self):

@@ -1,8 +1,18 @@
 <script type="text/javascript">
 $(document).ready(function() {
-    // Hard-coded "Sponsor" and "Supersponsor" prices. This should probably grab from PREREG_DONATION_OPTS
+    // Sponsor price
     var sponsor_addon = 50;
+
+    // Supersponsor price
+    {% if AT_THE_CON %}
+    var super_sponsor_addon = 190;
+    {% else %}
     var super_sponsor_addon = 195;
+    {% endif %}
+
+    // Any of these donation levels are counted as Sponsor or SS.
+    var sponsor_levels = [50, 555];
+    var ss_levels = [195, 190, 556];
 
     {% if attendee.badge_type != PSEUDO_DEALER_BADGE %}
         // Display the correct badge name based on Badge Type and Ribbon.
@@ -62,9 +72,9 @@ $(document).ready(function() {
                                 '<p class="list-group-item-text">The most generous option - get even more great perks!</p>');
 
     // Sets the badge box to correspond to the the session's kick-in level
-    if ($.val('amount_extra') === sponsor_addon) {
+    if ($.inArray($.val('amount_extra'), sponsor_levels)) {
         setBadge('Featured1');
-    } else if ($.val('amount_extra') === super_sponsor_addon) {
+    } else if ($.inArray($.val('amount_extra'), ss_levels)) {
         setBadge('Featured2');
     } else {
         setBadge('Attendee');
@@ -82,8 +92,16 @@ $(document).ready(function() {
 })
 
 function setBadge(badgeType) {
+    // Sponsor price
     var sponsor_addon = 50;
+
+    // Supersponsor price
+    {% if AT_THE_CON %}
+    var super_sponsor_addon = 190;
+    {% else %}
     var super_sponsor_addon = 195;
+    {% endif %}
+
 
     $(".badge_type_selector").removeClass("active");
     $(".group_fields").addClass("hide");
