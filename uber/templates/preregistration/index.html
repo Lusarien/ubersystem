@@ -41,6 +41,20 @@
         <a href="form">{% stripe_button "Add Another Prereg" %}</a>
     </div>
 </div>
+    {% if AT_THE_CON %}
+    <form method="post" action="form" class="form-horizontal" role="form">
+<div class="form-group">
+    <div class="col-sm-6">
+        <select name="payment_override" onChange="maybeBold()">
+            <option value="">Select a payment option</option>
+            {% options DOOR_PAYMENT_METHOD_OPTS %}
+        </select>
+        <button type="submit" class="btn btn-primary" value="Preregister">Change Payment Method</button>
+    </div>
+</div>
+        </form>
+    {% endif %}
+</div>
 </div>
 </div>
 

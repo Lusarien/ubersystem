@@ -103,7 +103,7 @@ class Root:
         return self.form(badge_type=PSEUDO_DEALER_BADGE, message=message)
 
     @check_if_can_reg
-    def form(self, session, message='', edit_id=None, **params):
+    def form(self, session, message='', edit_id=None, payment_override=None, **params):
         if MODE == 'magstock':
             if params.get('buy_shirt') != 'on':
                 params['shirt'] = NO_SHIRT
@@ -163,22 +163,25 @@ class Root:
                     if group.badges:
                         Tracking.track(track_type, group)
 
-                if AT_THE_CON:
-                    session.add(attendee)
-                    attendee.badge_num = 0
-                    if not attendee.zip_code:
-                        attendee.zip_code = '00000'
-                    session.commit()
+                if AT_THE_CON and attendee.payment_method != STRIPE or payment_override is not None:
+                    new_attendees = Charge(listify(self.unpaid_preregs.values()))
+                    for attendee in new_attendees.attendees:
+                        session.add(attendee)
+                        attendee.badge_num = 0
+                        if not attendee.zip_code:
+                            attendee.zip_code = '00000'
+                        if payment_override: attendee.payment_method = payment_override
+                        session.commit()
+                    self.unpaid_preregs.clear()
                     message = 'Thanks!  Please queue in the {} line and have your photo ID and {} ready.'
-                    if attendee.payment_method == STRIPE:
-                        raise HTTPRedirect('../registration/pay?id={}', attendee.id)
-                    elif attendee.payment_method == GROUP:
+                    if attendee.payment_method == GROUP:
                         message = 'Please proceed to the preregistration line to pick up your badge.'
                         attendee.paid = PAID_BY_GROUP
                     elif attendee.payment_method == CASH:
                         message = message.format('cash', '${}'.format(attendee.total_cost))
                     elif attendee.payment_method == MANUAL:
                         message = message.format('credit card', 'credit card')
+                    raise HTTPRedirect('form?message={}', message)
                 else:
                     if session.query(Attendee).filter_by(first_name=attendee.first_name, last_name=attendee.last_name, email=attendee.email).count():
                         raise HTTPRedirect('duplicate?id={}', group.id if attendee.paid == PAID_BY_GROUP else attendee.id)
@@ -190,6 +193,7 @@ class Root:
         else:
             if edit_id is None:
                 attendee.can_spam = True    # only defaults to true for these forms
+                attendee.payment_method = STRIPE # our preferred payment method, and makes it easier when registering groups
             if attendee.badge_type == PSEUDO_DEALER_BADGE and state.AFTER_DEALER_REG_DEADLINE:
                 message = 'Dealer registration is closed, but you can fill out this form to add yourself to our waitlist'
 
