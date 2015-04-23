@@ -165,12 +165,13 @@ class Root:
 
                 if AT_THE_CON and attendee.payment_method != STRIPE or payment_override is not None:
                     new_attendees = Charge(listify(self.unpaid_preregs.values()))
+                    if not payment_override: payment_override = attendee.payment_method
                     for attendee in new_attendees.attendees:
                         session.add(attendee)
                         attendee.badge_num = 0
                         if not attendee.zip_code:
                             attendee.zip_code = '00000'
-                        if payment_override: attendee.payment_method = payment_override
+                        attendee.payment_method = payment_override
                         session.commit()
                     self.unpaid_preregs.clear()
                     message = 'Thanks!  Please queue in the {} line and have your photo ID and {} ready.'
